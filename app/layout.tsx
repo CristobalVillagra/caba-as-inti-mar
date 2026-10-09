@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: { title: 'Cabañas Inti Mar', description: 'Tu pausa junto al mar en El Quisco.', type: 'website' },
 }
 
-export const viewport: Viewport = { colorScheme: 'light', themeColor: '#f8f5ee' }
+export const viewport: Viewport = { colorScheme: 'light', themeColor: '#F3A978' }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="es" className={`${fraunces.variable} ${workSans.variable}`}><body className="antialiased">{children}{process.env.NODE_ENV === 'production' && <Analytics />}</body></html>

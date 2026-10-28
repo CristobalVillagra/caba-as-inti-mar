@@ -3,86 +3,79 @@
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import {
-  Accessibility, ArrowUpRight, Bath, BedDouble, CalendarDays, Camera, Check,
-  ChevronDown, ChevronLeft, ChevronRight, MapPin, Menu, Minus, Plus,
-  ShowerHead, Trees, Waves, X,
+  ArrowUpRight, CalendarDays, Camera, ChevronDown, ChevronLeft, ChevronRight, MapPin, Menu,
+  Trees, Waves, X,
 } from 'lucide-react'
+import { BookingDialog, type CabinTypeId } from '@/components/booking-dialog'
 
 const images = {
-  logo: '/images/logo-inti-mar.png',
+  logo: '/images/logo-inti-mar-original.jpg',
   lounge: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-L9CIqlU0V0mgkRSBlxgHQf1KGkjhyH.png',
   cabin: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-tgHgvtx9A9O1oK209WEnW9Vase4DWX.png',
   bathroom: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-8ybrTzm9IsbhDETO2b7Qdsv9mImfQC.png',
-  coast: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-lNa3m4hhIj93rNuoatuhF7ckZXmDkC.png',
-  rock: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Ee4L4YBJhUl23nHc8YiVChMeLwPTKf.png',
   bahia1: '/images/hero-costa-1.png',
   bahia2: '/images/hero-costa-2.png',
   entrada: '/images/hero-fachada.png',
 }
 
 const slides = [
-  { src: images.bahia1, alt: 'Bahía, playa y bosque del litoral central', tag: '01 · Bahía y playa', title: 'El mar como punto de partida.' },
-  { src: images.bahia2, alt: 'Vista amplia de la bahía en El Quisco', tag: '02 · Costa y arena', title: 'Camina hasta encontrar tu orilla.' },
-  { src: images.entrada, alt: 'Fachada y acceso de Cabañas Inti Mar', tag: '03 · Bienvenida', title: 'Tu descanso comienza aquí.' },
+  { src: images.bahia1, alt: 'Bahía, playa y bosque del litoral central', tag: 'Bahía y playa', title: 'El mar como punto de partida.' },
+  { src: images.bahia2, alt: 'Vista amplia de la bahía en El Quisco', tag: 'Costa y arena', title: 'Camina hasta encontrar tu orilla.' },
+  { src: images.entrada, alt: 'Fachada y acceso de Cabañas Inti Mar', tag: 'Bienvenida', title: 'Tu descanso comienza aquí.' },
 ]
 
-const bookingUrl = 'https://www.booking.com/hotel/cl/inti-mar.es.html'
+const coastPhotos = [
+  { src: '/images/costa-rollo/costa-acantilado.jpg', alt: 'Sendero costero entre acantilados, vegetación y mar' },
+  { src: '/images/costa-rollo/pradera-el-quisco.jpg', alt: 'Pradera de flores amarillas y casas de El Quisco' },
+  { src: '/images/costa-rollo/roca-costera.jpg', alt: 'Formación rocosa frente al océano' },
+  { src: '/images/costa-rollo/roquerios-y-oleaje.jpg', alt: 'Oleaje y roqueríos del litoral central' },
+  { src: '/images/costa-rollo/jardin-con-vista-al-mar.jpg', alt: 'Jardín florido con vista al océano' },
+  { src: '/images/costa-rollo/gruta-costera.jpg', alt: 'Gruta junto al paseo costero de El Quisco' },
+  { src: '/images/costa-rollo/panoramica-playa.jpg', alt: 'Vista panorámica de la playa de El Quisco' },
+]
+
 const instagramUrl = 'https://instagram.com/cabanasintimar_quisco'
 const mapsUrl = 'https://maps.app.goo.gl/Ye5rdj3BPsQdEvxK7'
 const mapsEmbedUrl = 'https://www.google.com/maps?q=Caba%C3%B1as+Inti+Mar,+El+Quisco,+Chile&output=embed'
-const whatsappUrl = 'https://wa.me/56995439583?text=Hola%2C%20quiero%20consultar%20por%20una%20cabaña%20en%20Inti%20Mar.'
+const whatsappUrl = 'https://wa.me/56961683507?text=Hola%2C%20quiero%20consultar%20por%20una%20caba%C3%B1a%2C%20sus%20tarifas%20y%20valores%20promocionales%20en%20Inti%20Mar.'
 
-function Pill({ children }: { children: React.ReactNode }) {
-  return <span className="pill">{children}</span>
-}
+function PhotoRollCarousel() {
+  const [activePhoto, setActivePhoto] = useState(0)
+  const [paused, setPaused] = useState(false)
 
-function BookingCart({ onClose }: { onClose: () => void }) {
-  const [nights, setNights] = useState(2)
-  const [guests, setGuests] = useState(2)
-  const [tinaja, setTinaja] = useState(false)
+  useEffect(() => {
+    if (paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const timer = window.setInterval(() => setActivePhoto(current => (current + 1) % coastPhotos.length), 3000)
+    return () => window.clearInterval(timer)
+  }, [paused])
+
+  const move = (direction: number) => setActivePhoto(current => (current + direction + coastPhotos.length) % coastPhotos.length)
+
   return (
-    <div className="booking-widget">
-      <div className="booking-widget-head">
-        <div>
-          <span className="eyebrow"><span className="eyebrow-line" /> Reserva tu cabaña</span>
-          <h3>Arma tu descanso</h3>
+    <div className="photo-roll" role="region" aria-roledescription="carrusel" aria-label="Fotos de la costa de El Quisco" onPointerEnter={() => setPaused(true)} onPointerLeave={() => setPaused(false)} onFocusCapture={() => setPaused(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false) }}>
+      <div className="photo-roll-stage">
+        {coastPhotos.map((photo, index) => {
+          const relative = (index - activePhoto + coastPhotos.length) % coastPhotos.length
+          const offset = relative > coastPhotos.length / 2 ? relative - coastPhotos.length : relative
+          const scale = offset === 0 ? 1 : Math.abs(offset) === 1 ? .76 : Math.abs(offset) === 2 ? .58 : .46
+          const brightness = offset === 0 ? 1.08 : Math.abs(offset) === 1 ? .62 : .4
+          const opacity = Math.abs(offset) === 3 ? 0 : Math.abs(offset) === 2 ? .48 : 1
+          return (
+            <figure className={`photo-roll-card ${offset === 0 ? 'photo-roll-active' : 'photo-roll-side'}`} key={photo.src} aria-hidden={offset !== 0} style={{ transform: `translate(calc(-50% + ${offset * 31}vw), -50%) scale(${scale})`, filter: `brightness(${brightness})`, opacity, zIndex: Math.max(0, 3 - Math.abs(offset)) }}>
+              <Image src={photo.src} alt={photo.alt} fill sizes="(max-width: 800px) 88vw, 62vw" priority={index === 0} />
+              {offset === 0 && <figcaption>{photo.alt}</figcaption>}
+            </figure>
+          )
+        })}
+        <button className="photo-roll-arrow photo-roll-prev" onClick={() => move(-1)} aria-label="Ver foto anterior"><ChevronLeft size={22} /></button>
+        <button className="photo-roll-arrow photo-roll-next" onClick={() => move(1)} aria-label="Ver foto siguiente"><ChevronRight size={22} /></button>
+      </div>
+      <div className="photo-roll-footer">
+        <div className="photo-roll-dots" aria-label="Elegir foto">
+          {coastPhotos.map((photo, index) => <button key={photo.src} className={index === activePhoto ? 'active' : ''} onClick={() => setActivePhoto(index)} aria-label={`Mostrar ${photo.alt}`} aria-current={index === activePhoto} />)}
         </div>
-        <button className="close-booking" onClick={onClose} aria-label="Cerrar reserva"><X size={18} /></button>
+        <span>LA COSTA DE EL QUISCO, A TU RITMO</span>
       </div>
-      <div className="booking-fields">
-        <label>Entrada<input type="date" defaultValue="2026-10-10" /></label>
-        <label>Salida<input type="date" defaultValue="2026-10-12" /></label>
-      </div>
-      <label className="cabin-select">Tipo de cabaña
-        <select>
-          <option>Cabaña tradicional</option>
-          <option>Cabaña con tinaja (adaptada)</option>
-        </select>
-      </label>
-      <label className="check-option">
-        <input type="checkbox" checked={tinaja} onChange={e => setTinaja(e.target.checked)} /> Agregar tinaja privada <span>+$25.000 / noche</span>
-      </label>
-      <div className="booking-stepper">
-        <span>Noches</span>
-        <div>
-          <button onClick={() => setNights(Math.max(1, nights - 1))} aria-label="Disminuir noches"><Minus size={15} /></button>
-          <strong>{nights}</strong>
-          <button onClick={() => setNights(nights + 1)} aria-label="Aumentar noches"><Plus size={15} /></button>
-        </div>
-      </div>
-      <div className="booking-stepper">
-        <span>Huéspedes</span>
-        <div>
-          <button onClick={() => setGuests(Math.max(1, guests - 1))} aria-label="Disminuir huéspedes"><Minus size={15} /></button>
-          <strong>{guests}</strong>
-          <button onClick={() => setGuests(Math.min(8, guests + 1))} aria-label="Aumentar huéspedes"><Plus size={15} /></button>
-        </div>
-      </div>
-      <div className="booking-total">
-        <span>Desde <b>${((65000 + (tinaja ? 25000 : 0)) * nights).toLocaleString('es-CL')}</b></span>
-        <small>por {nights} noches · {guests} huéspedes</small>
-      </div>
-      <a className="button button-primary full-button" href={bookingUrl} target="_blank" rel="noreferrer">Consultar disponibilidad <ArrowUpRight size={16} /></a>
     </div>
   )
 }
@@ -97,6 +90,7 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [slide, setSlide] = useState(0)
   const [bookingOpen, setBookingOpen] = useState(false)
+  const [bookingType, setBookingType] = useState<CabinTypeId>('tradicional')
   const touchStartX = useRef<number | null>(null)
 
   const handleTouchStart = (event: React.TouchEvent<HTMLElement>) => {
@@ -124,12 +118,12 @@ export default function Home() {
         <nav className={`nav ${menuOpen ? 'nav-open' : ''}`} aria-label="Navegación principal">
           <a href="#inicio" onClick={() => setMenuOpen(false)}>Inicio</a>
           <a href="#experiencia" onClick={() => setMenuOpen(false)}>Quiénes somos</a>
-          <a href="#cabanas" onClick={() => setMenuOpen(false)}>Cabañas</a>
+          <a href="/cabanas" onClick={() => setMenuOpen(false)}>Cabañas</a>
           <a href="#entorno" onClick={() => setMenuOpen(false)}>Qué visitar</a>
           <a href="#ubicacion" onClick={() => setMenuOpen(false)}>Ubicación</a>
           <a href={instagramUrl} target="_blank" rel="noreferrer">Instagram <ArrowUpRight size={14} /></a>
         </nav>
-        <button className="header-cta" onClick={() => setBookingOpen(true)}>Reservar <ArrowUpRight size={16} /></button>
+        <button className="header-cta" onClick={() => { setBookingType('tradicional'); setBookingOpen(true) }}>Reservar <ArrowUpRight size={16} /></button>
         <button className="menu-button" aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'} onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
@@ -145,25 +139,19 @@ export default function Home() {
           <strong>{slides[slide].title}</strong>
         </div>
         <div className="hero-content">
-          <Pill><Waves size={15} /> Un refugio junto al mar</Pill>
           <h1>Respira.<br /><em>Estás en Inti Mar.</em></h1>
           <p>Una pausa sencilla y luminosa en El Quisco, para volver a lo esencial.</p>
           <div className="hero-actions">
-            <button className="button button-primary" onClick={() => setBookingOpen(true)}>Ver disponibilidad <ArrowUpRight size={17} /></button>
+            <button className="button button-primary" onClick={() => { setBookingType('tradicional'); setBookingOpen(true) }}>Ver disponibilidad <ArrowUpRight size={17} /></button>
             <a className="text-link light-link" href="#entorno">Descubre el entorno <ChevronDown size={17} /></a>
           </div>
-        </div>
-        <div className="hero-controls">
-          <button onClick={() => setSlide((slide + slides.length - 1) % slides.length)} aria-label="Foto anterior"><ChevronLeft size={17} /></button>
-          <span>{String(slide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-          <button onClick={() => setSlide((slide + 1) % slides.length)} aria-label="Foto siguiente"><ChevronRight size={17} /></button>
         </div>
         <div className="hero-dots" aria-label="Seleccionar imagen">
           {slides.map((item, i) => (
             <button key={item.src} className={i === slide ? 'active' : ''} onClick={() => setSlide(i)} aria-label={`Ver ${item.tag}`} />
           ))}
         </div>
-        <div className="hero-note"><span>El Quisco · Chile</span><span>Pacífico central</span></div>
+        <div className="hero-note"><span>El Quisco · Chile</span><span>Litoral central</span></div>
       </section>
 
       {/* ===== Quiénes somos + ventajas + actividades (sección combinada) ===== */}
@@ -178,7 +166,7 @@ export default function Home() {
         </div>
 
         <div className="values-grid">
-          <a className="value" href="#cabanas">
+          <a className="value" href="/cabanas">
             <span className="value-icon"><Waves size={21} /></span>
             <div><h3>5 Cabañas disponibles</h3><p>Conoce las ventajas de cada una.</p></div>
           </a>
@@ -211,24 +199,10 @@ export default function Home() {
             <div className="eyebrow"><span className="eyebrow-line" /> Una ubicación para explorar</div>
             <h2>Miradores, caminatas<br /><em>y mar abierto.</em></h2>
           </div>
-          <p>Haz clic en una foto para ver todas las ventajas del entorno de Inti Mar.</p>
+          <p>Una mirada al litoral que rodea Inti Mar: miradores, senderos y mar abierto.</p>
         </div>
-        <div className="places-grid">
-          <a className="place place-large" href="#exterior" aria-label="Ver ventajas del exterior">
-            <Image src={images.rock} alt="Mirador rocoso de El Quisco" fill sizes="50vw" />
-            <div><span>01 · A pie</span><h3>Miradores de la costa</h3><p>Rocas, horizonte abierto y atardeceres a pocos minutos.</p></div>
-          </a>
-          <a className="place" href="#exterior" aria-label="Ver ventajas del exterior">
-            <Image src={images.coast} alt="Playa y sendero costero" fill sizes="30vw" />
-            <div><span>02 · Caminata</span><h3>Playas y caletas</h3><p>Recorre la costa y encuentra tu rincón favorito.</p></div>
-          </a>
-          <article className="place place-note">
-            <Waves size={28} />
-            <h3>Todo queda cerca</h3>
-            <p>Una base tranquila para conocer El Quisco, Algarrobo y el litoral central.</p>
-            <a className="text-link" href={mapsUrl} target="_blank" rel="noreferrer">Ver en Maps <ArrowUpRight size={16} /></a>
-          </article>
-        </div>
+        <PhotoRollCarousel />
+        <div className="coast-map-link"><Waves size={18} /><span>Una base tranquila para conocer El Quisco, Algarrobo y el litoral central.</span><a className="text-link" href={mapsUrl} target="_blank" rel="noreferrer">Ver en Maps <ArrowUpRight size={16} /></a></div>
       </section>
 
       <section className="location section-pad" id="ubicacion">
@@ -247,14 +221,14 @@ export default function Home() {
         <div className="reviews-heading">
           <div className="eyebrow"><span className="eyebrow-line" /> Lo que dicen nuestros huéspedes</div>
           <h2>Familias que ya<br /><em>encontraron su calma.</em></h2>
-          <div className="rating"><strong>9.8</strong><span>Excelente en Booking.com<small>Basado en reseñas de huéspedes</small></span></div>
+          <div className="rating"><strong>9.8</strong><span>Excelente valoración<small>Opiniones de huéspedes</small></span></div>
         </div>
         <div className="review-grid">
           {reviews.map(quote => (
             <article className="review-card" key={quote}>
               <div className="stars">★★★★★</div>
               <p>&ldquo;{quote}&rdquo;</p>
-              <footer>Huésped verificado — Booking.com</footer>
+              <footer>Huésped de Inti Mar</footer>
             </article>
           ))}
         </div>
@@ -265,29 +239,30 @@ export default function Home() {
         <div className="eyebrow centered"><span className="eyebrow-line" /> Tu descanso comienza aquí <span className="eyebrow-line" /></div>
         <h2>Reserva tu descanso<br /><em>en el litoral.</em></h2>
         <p>Elige tus fechas y ven a vivir unos días de calma junto al mar.</p>
+        <p className="promo-copy">Para más información sobre valores promocionales, contáctanos por WhatsApp.</p>
         <div className="cta-actions">
-          <a className="button button-wood" href={bookingUrl} target="_blank" rel="noreferrer"><CalendarDays size={17} /> Reservar en Booking <ArrowUpRight size={17} /></a>
-          <a className="button button-ghost" href={whatsappUrl} target="_blank" rel="noreferrer">Escribir por WhatsApp +56995439583</a>
+          <button className="button button-wood" onClick={() => { setBookingType('tradicional'); setBookingOpen(true) }}><CalendarDays size={17} /> Reservar en el sitio <ArrowUpRight size={17} /></button>
+          <a className="button button-ghost" href={whatsappUrl} target="_blank" rel="noreferrer">Escribir por WhatsApp +56 9 6168 3507</a>
         </div>
       </section>
 
       <footer className="footer">
         <div className="footer-brand">
-          <Image src={images.logo} alt="Logo Cabañas Inti Mar" width={92} height={68} />
+          <a href="#inicio" aria-label="Volver al inicio" className="footer-logo-link"><Image src={images.logo} alt="Logo Cabañas Inti Mar" width={142} height={106} className="footer-logo" /></a>
           <p>Un lugar para volver a ti.</p>
         </div>
         <div className="footer-links">
           <div>
             <span>Explora</span>
             <a href="#experiencia">Quiénes somos</a>
-            <a href="#cabanas">Las cabañas</a>
+            <a href="/cabanas">Las cabañas</a>
             <a href="#entorno">Qué visitar</a>
             <a href="#ubicacion">Ubicación</a>
           </div>
           <div>
             <span>Conecta</span>
             <a href={instagramUrl} target="_blank" rel="noreferrer"><Camera size={15} /> @cabanasintimar</a>
-            <a href={bookingUrl} target="_blank" rel="noreferrer">Booking.com</a>
+            <a href={whatsappUrl} target="_blank" rel="noreferrer">WhatsApp +56 9 6168 3507</a>
           </div>
         </div>
         <div className="footer-bottom">
@@ -296,12 +271,7 @@ export default function Home() {
         </div>
       </footer>
 
-      {bookingOpen && (
-        <div className="booking-overlay" role="dialog" aria-modal="true" aria-label="Reservar una cabaña">
-          <BookingCart onClose={() => setBookingOpen(false)} />
-          <button className="overlay-close" onClick={() => setBookingOpen(false)} aria-label="Cerrar ventana de reserva"><X size={22} /></button>
-        </div>
-      )}
+      {bookingOpen && <BookingDialog initialCabin={bookingType} onClose={() => setBookingOpen(false)} />}
     </main>
   )
 }
